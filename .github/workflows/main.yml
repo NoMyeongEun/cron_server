@@ -71,8 +71,17 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       
       - name: Docker run
-        run: |
-            sudo docker compose -f "/home/ubuntu/cron_server/docker-compose.yml" down
+        uses: appleboy/ssh-action@master
+        env:
+          APP: "sns"
+          COMPOSE: "/root/compose/docker-compose.yml"
+        with:
+          username: ubuntu
+          host: $
+          key: $
+          script_stop: true
+          script: |
+            sudo docker compose -f "/home/ubuntu/cron_server/docker-compose.yml" down --rmi all
             sudo docker pull ${{ env.DOCKER_IMAGE }}:latest
             sudo docker compose -f "/home/ubuntu/cron_server/docker-compose.yml" up -d
           
