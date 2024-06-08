@@ -9,7 +9,7 @@ on:
     # 여러개 적어도 된다.
 
 env:
-  DOCKER_IMAGE: ghcr.io/${{ github.repository_owner}}/cronserver
+  DOCKER_IMAGE: ghcr.io/$(echo ${{ github.actor }} | tr '[:upper:]' '[:lower:]')/cronserver
   VERSION: ${{ github.sha }}
   NAME: cronserver
   # Docker image 를 ghcr.io 에 올릴 때 우리의github이름/이미지이름 으로 저장한다. 이미지이름을 정해주면 된다.
