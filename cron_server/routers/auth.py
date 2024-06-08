@@ -1,13 +1,19 @@
 from fastapi import HTTPException, Depends, APIRouter, status
 from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
 from passlib.context import CryptContext
-from database import engine, SessionLocal
 from sqlalchemy.orm import Session
-import models
 from typing import Optional, List
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from pydantic import BaseModel
+import json
+import os
+from dotenv import load_dotenv
+
+from .. import models
+from ..database import engine, SessionLocal
+
+load_dotenv()
 
 router = APIRouter(
     prefix="/auth",
@@ -15,21 +21,27 @@ router = APIRouter(
     responses={404: {"description": "Not found"}}
 )
 
-SECRET_KEY = "{SECRET_KEY}"
+SECRET_KEY = os.environ.get('SECRET_KEY')
 ALGORITHM = "HS256"
 
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZGluZyIsImlkIjoxLCJleHAiOjE3MTUyMTE2ODh9.UxR8YRMnWCaH4Gbfubeufv2wRCWD6x-77OD0D2B_VX4")
 
 models.Base.metadata.create_all(bind=engine)
 
 class CreateUser(BaseModel):
-    username: str
-    email: Optional[str]
-    first_name: str
-    last_name: str
+    email: str
     password: str
+    username: str
+    gender : str
+    goal : List[str]
+    
+class CheckEmail(BaseModel):
+    email: str
 
+class CheckPwd(BaseModel):
+    email: str
+    pwd : str
 
 def get_db():
     try:
@@ -62,8 +74,8 @@ def get_password_hash(password):
 def verify_password(plain_password, hashed_password):
     return bcrypt_context.verify(plain_password, hashed_password)
 
-def authenticate_user(username: str, password: str, db):
-    user = db.query(models.Users).filter(models.Users.username == username).first()
+def authenticate_user(email: str, password: str, db):
+    user = db.query(models.Users).filter(models.Users.email == email).first()
 
     if not user:
         return False
@@ -91,22 +103,42 @@ async def get_current_user(token: str = Depends(oauth2_bearer)):
     except JWTError:
         return get_user_exception()
 
- 
+
+async def get_user_by_email(email: str, db):
+    result = db.query(models.Users).filter(models.Users.email == email).first()
+    return result
+
 @router.post("/register")
 async def create_new_user(create_user: CreateUser, db: Session = Depends(get_db)):
     create_user_model = models.Users()
     create_user_model.email = create_user.email
-    create_user_model.username = create_user.username
-    create_user_model.first_name = create_user.first_name
-    create_user_model.last_name = create_user.last_name
-
+    
     hash_password = get_password_hash(create_user.password)
-
     create_user_model.hashed_password = hash_password
-    create_user_model.is_active = True
+    
+    create_user_model.username = create_user.username
+    create_user_model.gender = create_user.gender
+    create_user_model.goal = json.dumps(create_user.goal, ensure_ascii= False)
 
     db.add(create_user_model)
     db.commit()
+
+@router.post("/check")
+async def check_user(check : CheckEmail, db : Session = Depends(get_db)) :
+    result = await get_user_by_email(check.email, db)
+    if result is None :
+        return {"registered" : "false"}
+    else :
+        return {"registered" : "true"}
+
+@router.post("/verify")
+async def login_for_registered_user(form_data: CheckPwd,
+                                 db: Session = Depends(get_db)):
+    user = authenticate_user(form_data.email, form_data.pwd, db)
+    if not user:
+        return {"result": "fail"}
+    else :
+        return {"result": "success"}
 
 @router.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),

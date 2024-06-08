@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-SQLALCHEMY_DATABASE_URL = "postgresql://nomyeong-eun:{password}@localhost/cron"
+SQLALCHEMY_DATABASE_URL = "postgresql://your_username:your_password@postgres/your_dbname"
 
 engine = create_engine(
 	SQLALCHEMY_DATABASE_URL
