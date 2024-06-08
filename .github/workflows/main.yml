@@ -72,9 +72,6 @@ jobs:
       
       - name: Docker run
         uses: appleboy/ssh-action@master
-        env:
-          APP: "sns"
-          COMPOSE: "/root/compose/docker-compose.yml"
         with:
           username: ubuntu
           host: ${{ secrets.EC2_HOST }}
