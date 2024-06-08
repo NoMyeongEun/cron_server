@@ -9,6 +9,7 @@ on:
     # 여러개 적어도 된다.
 
 env:
+  DOCKER_IMAGE: ghcr.io/nomyeongeun/cronserver
   VERSION: ${{ github.sha }}
   NAME: cronserver
   # Docker image 를 ghcr.io 에 올릴 때 우리의github이름/이미지이름 으로 저장한다. 이미지이름을 정해주면 된다.
@@ -54,7 +55,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ env.IMAGE_REPOSITORY }}:latest
+          tags: ${{ env.DOCKER_IMAGE }}:latest
   
   deploy:
     needs: build
@@ -72,7 +73,7 @@ jobs:
       - name: Docker run
         run: |
           sudo docker compose -f "/home/ubuntu/cron_server/docker-compose.yml" down
-          sudo docker pull ${{ env.IMAGE_REPOSITORY }}:latest
+          sudo docker pull ${{ env.DOCKER_IMAGE }}:latest
           sudo docker compose -f "/home/ubuntu/cron_server/docker-compose.yml" up -d
           
           # 첫 줄
