@@ -71,12 +71,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       
       - name: Docker run
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
-          script: |
+        run: |
             sudo docker compose -f "/home/ubuntu/cron_server/docker-compose.yml" down
             sudo docker pull ${{ env.DOCKER_IMAGE }}:latest
             sudo docker compose -f "/home/ubuntu/cron_server/docker-compose.yml" up -d
