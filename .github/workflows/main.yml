@@ -77,9 +77,8 @@ jobs:
           COMPOSE: "/root/compose/docker-compose.yml"
         with:
           username: ubuntu
-          host: $
-          key: $
-          script_stop: true
+          host: ${{ secrets.EC2_HOST }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             sudo docker compose -f "/home/ubuntu/cron_server/docker-compose.yml" down --rmi all
             sudo docker pull ${{ env.DOCKER_IMAGE }}:latest
