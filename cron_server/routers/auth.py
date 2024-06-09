@@ -138,7 +138,7 @@ async def login_for_registered_user(form_data: CheckPwd,
     if not user:
         return {"result": "fail"}
     else :
-        return {"result": "success"}
+        return {"result": "success", "username" : user.username, "gender" : user.gender, "goal" : user.goal}
 
 @router.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
